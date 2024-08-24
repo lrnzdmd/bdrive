@@ -5,7 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.10/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <title>Login</title>
+    <title>Sign up</title>
+    <script defer>
+        function validateRegistration(event) {
+            event.preventDefault();
+            const form = event.target;
+            console.log('pwd: '+ form.password.value)
+            console.log('conf: '+ form.confirmpassword.value)
+            const pwd = form.password.value;
+            const conf = form.confirmpassword.value;
+            if (pwd !== conf) {
+                const passwordLabel = form.querySelector('label[for="passwordNoMatch"]');
+                passwordLabel.classList.remove('hidden');
+            } else {
+                form.removeEventListener('submit', validateRegistration);
+                form.submit();
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="bg-white dark:bg-gray-900">
@@ -35,7 +52,7 @@
                     </div>
     
                     <div class="mt-8">
-                        <form action="/signup" method="post">
+                        <form action="/signup" method="post" onsubmit="validateRegistration(event)">
                             <div>
                                 <label for="email" class="block mb-2 text-sm text-gray-600 dark:text-gray-200">Email Address</label>
                                 <input required type="email" name="username" id="email" placeholder="example@example.com" class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-sky-400 dark:focus:border-sky-400 focus:ring-sky-400 focus:outline-none focus:ring focus:ring-opacity-40" />
@@ -49,6 +66,7 @@
                             <div class="mt-6">
                                 <div class="flex justify-between mb-2">
                                     <label for="password" class="text-sm text-gray-600 dark:text-gray-200">Password</label>
+                                    <label for="passwordNoMatch" class="hidden text-sm text-red-600 dark:text-red-600">Passwords must match!</label>
                                 </div>
     
                                 <input required type="password" name="password" id="password" placeholder="Password" class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-sky-400 dark:focus:border-sky-400 focus:ring-sky-400 focus:outline-none focus:ring focus:ring-opacity-40" />
@@ -59,7 +77,7 @@
                                     <label for="confirmpassword" class="text-sm text-gray-600 dark:text-gray-200">Confirm Password</label>
                                 </div>
     
-                                <input required type="password" name="confirmpassword" id="password" placeholder="Confirm Password" class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-sky-400 dark:focus:border-sky-400 focus:ring-sky-400 focus:outline-none focus:ring focus:ring-opacity-40" />
+                                <input required type="password" name="confirmpassword" placeholder="Confirm Password" class="block w-full px-4 py-2 mt-2 text-gray-700 placeholder-gray-400 bg-white border border-gray-200 rounded-lg dark:placeholder-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 focus:border-sky-400 dark:focus:border-sky-400 focus:ring-sky-400 focus:outline-none focus:ring focus:ring-opacity-40" />
                             </div>
     
                             <div class="mt-6">

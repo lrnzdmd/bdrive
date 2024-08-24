@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('node:path')
 const passport = require('passport');
+const bcrypt = require('bcryptjs');
 const LocalStrategy = require('passport-local').Strategy;
 const expressSession = require('express-session');
 const { PrismaClient } = require('@prisma/client');
@@ -15,7 +16,19 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({extended: false}));
-    
+
+// middleware to only allow unauthenticated users to login and signup route
+
+function checkAuthentication(req, res, next) {
+    if (req.user) {
+        return next();
+    }
+    res.redirect('/login');
+}
+
+
+
+
 // session store setup with prisma 
 
 app.use(expressSession({
@@ -86,13 +99,20 @@ app.use((req,res,next) => {
 
 // ----------Views Render--------------
 
-app.get('/', async (req, res) => {
-    if (!req.user) {
-        res.redirect('/login');
-    } else {
-    res.render('home');
+app.use((req, res, next) => {
+    if (req.path === '/login' || req.path === '/signup') {
+        return next();
     }
+    checkAuthentication(req, res, next);
 });
+
+app.get('/', async (req, res) => {
+    res.redirect(`/drive/${req.user.id}/${req.user.fullName}/home`);
+});
+
+app.get('/drive/:userid/:username/:foldername', async (req, res) => {
+       res.render('home')     
+})
 
 app.get('/login', (req, res) => res.render('login'));
 
@@ -114,6 +134,38 @@ app.get('/logout', (req,res) => {
 
 app.get('/signup', (req,res) => {
     res.render('signup');
+})
+
+app.post('/signup', async (req, res, next) => {
+    try {
+        bcrypt.hash(req.body.password, 10, async (err, hashedPassword) => {
+            if (err) {
+                return next(err);
+            }
+            try {
+                await prisma.user.create({
+                    data: {
+                        username: req.body.username,
+                        fullName: req.body.fullname,
+                        password: hashedPassword,
+                        folders: {
+                            create: {
+                                name: 'Home',
+                            },
+                        },
+                    },
+                })
+            res.redirect('/');
+            } catch (error) {
+                return next(error);
+            }
+
+            
+        })
+    } catch (error) {
+        return next(error);
+    }
+
 })
 
 
