@@ -168,6 +168,34 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
     }
 })
 
+app.get('/download/:userid/:fileid', async (req,res) => {
+    const currid = parseInt(req.user.id);
+    const userid = parseInt(req.params.userid);
+    const fileid = parseInt(req.params.fileid);
+
+    if (currid !== userid) {
+        return res.status(403).send(`Access denied, you don't have the permissions to download this file.`)
+    } else { 
+        try {
+            const path = await prisma.file.findUnique({
+                where:{
+                    id: fileid,
+                },
+            });
+            res.download(path.url,path.name, (error) => {
+                if (error) {
+                console.error('Error downloading file: ',error);
+                res.status(500).send('Error downloading file.');
+                }
+            });
+
+        } catch (error) {
+            res.status(500).send('Error fetching file: ',error);
+        }
+
+    }
+})
+
 app.post('/upload/:userid/:folderid', upload.single('newFile') ,async function (req,res,next) {
     const currid = parseInt(req.user.id);
     const userid = parseInt(req.params.userid);
