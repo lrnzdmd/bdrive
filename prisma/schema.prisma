@@ -42,6 +42,7 @@ model File {
   id Int @id @default(autoincrement())
   name String
   size Float
+  sizeShort String
   url String
   owner User @relation(fields: [ownerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   ownerId Int 

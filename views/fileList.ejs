@@ -1,5 +1,5 @@
 <section class="container px-4 mx-auto">
-    <%- include('fileListHeader', {folder, path}) %>
+    <%- include('fileListHeader', {folder}) %>
 
     <div class="flex flex-col mt-6">
         <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
@@ -35,15 +35,16 @@
                         <tbody class="bg-white divide-y divide-gray-200 dark:divide-gray-700 dark:bg-gray-900">
 
                             
-                            <% folder.subfolders.forEach(folder => { %>
-                                <%- include('folderListElement', { folder }) %>
+                            <% folder.completeList[folder.currentPageIndex].forEach(element => { %>
+                                <% if (!element.subfolders) { %>
+                                    <%- include('fileListElement', { file: element }) %>
+                                <% } else { %>
+                                <%- include('folderListElement', { folder: element }) %>
+                                <% } %>
                             <% }) %>
                             
                             
-                            <% folder.files.forEach(file => { %>
-                                <%- include('fileListElement', { file }) %>
-                            <% }) %>
-
+                   
                             
                         </tbody>
                     </table>

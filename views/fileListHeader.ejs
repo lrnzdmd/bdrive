@@ -1,5 +1,5 @@
-<div class="sm:flex sm:items-center sm:justify-between mt-10">
-    <%- include('breadCrumbs', { path }) %>
+<div class="sm:flex sm:items-center sm:justify-between mt-3">
+    <%- include('breadCrumbs', { path: folder.breadcrumbs }) %>
 
         <div class="flex items-center gap-x-3">
             <a href="/new/<%= currentUser.id %>/folder/<%=folder.id%>"

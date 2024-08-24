@@ -19,6 +19,21 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({extended: false}));
 
+// Utility function, takes a file size in bytes and outputs the filesize in kb mb gb etc
+
+function formatFileSize(bytes) {
+    const units = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    let size = bytes;
+    let index = 0;
+
+    while (size >= 1024 && index < units.length - 1) {
+        size /= 1024;
+        index++;
+    }
+
+    return `${size.toFixed(2)} ${units[index]}`;
+}
+
 // middleware to only allow unauthenticated users to login and signup route
 
 function checkAuthentication(req, res, next) {
@@ -116,6 +131,7 @@ app.get('/', async (req, res) => {
 app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
     const userid = parseInt(req.params.userid, 10);
     const folderid = parseInt(req.params.folderid, 10);
+    const pageindex = parseInt(req.params.pagenumber, 10);
 
     if (req.user.id !== userid) {
         return res.status(403)._construct(`Access denied, you don't have the permissions to view this page.`)
@@ -151,15 +167,31 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
         const path = [];
         path.push(folder.name);
         while (parentf.parentId !== null) {
-        path.push(parentf.parent.name);
-        parentf = parentf.parent;
+          path.push(parentf.parent.name);
+          parentf = parentf.parent;
         }
         path.reverse();
-       
+        folder.breadcrumbs = path;
+
+        // divide the list of all files and folders in pages of 10 elements
 
 
+        const completeList = [...folder.subfolders, ...folder.files];
 
-       res.render('home', { folder, path });  
+        if (completeList.length > 10) {
+          const pages = [];
+          for (let i = 0; i < completeList.length; i += 10) {
+            pages.push(completeList.slice(i, i + 10));
+          }
+          folder.completeList = pages;
+        } else {
+          folder.completeList = [completeList];
+        }
+          folder.currentPageIndex = pageindex-1;
+
+          console.log(folder.completeList[folder.currentPageIndex]);
+
+       res.render('home', { folder });  
         }
         catch (error) {
             console.error(error);
@@ -207,6 +239,7 @@ app.post('/upload/:userid/:folderid', upload.single('newFile') ,async function (
             data: {
                 name: req.file.originalname,
                 size: req.file.size,
+                sizeShort: formatFileSize(req.file.size),
                 url: req.file.path,
                 ownerId: userid,
                 parentId: parentid,
