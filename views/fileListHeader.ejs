@@ -1,0 +1,69 @@
+<div class="sm:flex sm:items-center sm:justify-between mt-10">
+    <%- include('breadCrumbs', { path }) %>
+
+        <div class="flex items-center gap-x-3">
+            <a href="/new/<%= currentUser.id %>/folder/<%=folder.id%>"
+                class="w-1/2 px-5 py-2 text-sm text-gray-800 transition-colors duration-200 bg-white border rounded-lg sm:w-auto dark:hover:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 dark:text-white dark:border-gray-700">
+                New Folder
+            </a>
+            <button
+                class="w-1/2 px-5 py-2 text-sm text-gray-800 transition-colors duration-200 bg-white border rounded-lg sm:w-auto dark:hover:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 dark:text-white dark:border-gray-700">
+                Download selected
+            </button>
+
+            <div class="dropdown lg:dropdown-right md:dropdown-bottom sm:dropdown-bottom">
+                <button tabindex="0"
+                    class="flex items-center justify-center w-1/2 px-5 py-2 text-sm tracking-wide text-white transition-colors duration-200 bg-sky-500 rounded-lg sm:w-auto gap-x-2 hover:bg-sky-600 dark:hover:bg-sky-500 dark:bg-sky-600">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <g clip-path="url(#clip0_3098_154395)">
+                            <path
+                                d="M13.3333 13.3332L9.99997 9.9999M9.99997 9.9999L6.66663 13.3332M9.99997 9.9999V17.4999M16.9916 15.3249C17.8044 14.8818 18.4465 14.1806 18.8165 13.3321C19.1866 12.4835 19.2635 11.5359 19.0351 10.6388C18.8068 9.7417 18.2862 8.94616 17.5555 8.37778C16.8248 7.80939 15.9257 7.50052 15 7.4999H13.95C13.6977 6.52427 13.2276 5.61852 12.5749 4.85073C11.9222 4.08295 11.104 3.47311 10.1817 3.06708C9.25943 2.66104 8.25709 2.46937 7.25006 2.50647C6.24304 2.54358 5.25752 2.80849 4.36761 3.28129C3.47771 3.7541 2.70656 4.42249 2.11215 5.23622C1.51774 6.04996 1.11554 6.98785 0.935783 7.9794C0.756025 8.97095 0.803388 9.99035 1.07431 10.961C1.34523 11.9316 1.83267 12.8281 2.49997 13.5832"
+                                stroke="currentColor" stroke-width="1.67" stroke-linecap="round"
+                                stroke-linejoin="round" />
+                        </g>
+                        <defs>
+                            <clipPath id="clip0_3098_154395">
+                                <rect width="20" height="20" fill="white" />
+                            </clipPath>
+                        </defs>
+                    </svg>
+
+                    <span>Upload</span>
+                </button>
+                <ul tabindex="0"
+                    class="dropdown-content menu bg-gray-300 dark:bg-gray-800 rounded-box z-[1] lg:w-40 p-2 shadow lg:translate-x-4">
+                    <li>
+
+                        <div>
+                            <label for="newfile"
+                                class="sr-only block text-sm text-gray-500 dark:text-gray-300">File</label>
+
+                            <label for="uploadfile"
+                                class="flex flex-col items-center w-full max-w-lg p-5 mx-auto mt-2 text-center bg-white border-2 border-gray-300 border-dashed cursor-pointer dark:bg-gray-900 dark:border-gray-700 rounded-xl">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor"
+                                    class="w-8 h-8 text-gray-500 dark:text-gray-400">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" />
+                                </svg>
+
+                                <h2 class="mt-1 font-medium tracking-wide text-gray-700 dark:text-gray-200">Upload File
+                                </h2>
+                                <form action="/upload/<%= currentUser.id %>/<%= folder.id %>" method="post" enctype="multipart/form-data" >
+                                <script> 
+                                    function uploadFile(event) {
+                                        const form = event.target.closest('form');
+                                        form.submit();
+                                    }
+                                </script>
+                                <input onchange="uploadFile(event)" id="uploadfile" name="newFile" type="file" class="hidden"/>
+                                </form>
+                            </label>
+                        </div>
+
+
+                    </li>
+                </ul>
+            </div>
+        </div>
+</div>

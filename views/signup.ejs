@@ -10,8 +10,6 @@
         function validateRegistration(event) {
             event.preventDefault();
             const form = event.target;
-            console.log('pwd: '+ form.password.value)
-            console.log('conf: '+ form.confirmpassword.value)
             const pwd = form.password.value;
             const conf = form.confirmpassword.value;
             if (pwd !== conf) {

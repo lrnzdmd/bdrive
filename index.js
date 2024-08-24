@@ -1,4 +1,5 @@
 const express = require('express');
+const multer = require('multer');
 const path = require('node:path')
 const passport = require('passport');
 const bcrypt = require('bcryptjs');
@@ -6,6 +7,7 @@ const LocalStrategy = require('passport-local').Strategy;
 const expressSession = require('express-session');
 const { PrismaClient } = require('@prisma/client');
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
+const upload = multer({ dest: path.join(__dirname, '/uploads')});
 
 const prisma = new PrismaClient();
 
@@ -68,7 +70,7 @@ passport.use(
                 return done(null, user);
 
             } catch (error) {
-                return done(err);
+                return done(error);
             }
         })
 );
@@ -107,19 +109,114 @@ app.use((req, res, next) => {
 });
 
 app.get('/', async (req, res) => {
-    res.redirect(`/drive/${req.user.id}/${req.user.fullName}/home`);
+
+    res.redirect(`/drive/${req.user.id}/${req.user.fullName}/${req.user.homeFolderId}/1`);
 });
 
-app.get('/drive/:userid/:username/:foldername', async (req, res) => {
-       res.render('home')     
+app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
+    const userid = parseInt(req.params.userid, 10);
+    const folderid = parseInt(req.params.folderid, 10);
+
+    if (req.user.id !== userid) {
+        return res.status(403)._construct(`Access denied, you don't have the permissions to view this page.`)
+    } else {
+        try {
+        const folder = await prisma.folder.findUnique({
+            where: { id: folderid },
+            include: {
+                files: true,
+                subfolders: {
+                    include: {
+                        subfolders: true,
+                        parent: true,
+                    },
+                },
+                parent: {
+                    include: {
+                        subfolders: true,
+                        parent: true,
+                    },
+                },
+            },
+        });
+
+        if (!folder) {
+            return res.status(404).send("Not Found");
+        }
+       
+
+        // create an array of parents of the folder to get a path for the breadcrumbs
+
+        let parentf = folder;
+        const path = [];
+        path.push(folder.name);
+        while (parentf.parentId !== null) {
+        path.push(parentf.parent.name);
+        parentf = parentf.parent;
+        }
+        path.reverse();
+       
+
+
+
+       res.render('home', { folder, path });  
+        }
+        catch (error) {
+            console.error(error);
+            res.status(500).send("Internal server error.");
+        }
+    }
+})
+
+app.post('/upload/:userid/:folderid', upload.single('newFile') ,async function (req,res,next) {
+    const currid = parseInt(req.user.id);
+    const userid = parseInt(req.params.userid);
+    const parentid = parseInt(req.params.folderid);
+    if (currid !== userid) {
+        return res.status(403).send(`Access denied, you don't have the permissions to view this page.`)
+    } else { 
+        await prisma.file.create({
+            data: {
+                name: req.file.originalname,
+                size: req.file.size,
+                url: req.file.path,
+                ownerId: userid,
+                parentId: parentid,
+            },
+        });
+        res.redirect(req.get('Referer'));
+    }
+})
+
+app.get('/new/:userid/folder/:folderid', async (req,res) => {
+    const currid = parseInt(req.user.id);
+    const userid = parseInt(req.params.userid)
+    const parentid = parseInt(req.params.folderid)
+    if (currid != userid) {
+        return res.status(403).send(`Access denied, you don't have the permissions to view this page.`)
+    } else { 
+        try {
+            await prisma.folder.create({
+            data:{
+                name: 'New folder',
+                ownerId: userid,
+                parentId: parentid,
+            }
+            });
+            res.redirect(req.get('Referer'));
+        } catch (error) {
+            res.status(500).send('Internal server error');
+        }
+        
+    }
 })
 
 app.get('/login', (req, res) => res.render('login'));
 
-app.post('/login', 
-    passport.authenticate('local', {
+app.post('/login',
+        passport.authenticate('local', {
         successRedirect: '/',
-        failureRedirect: '/'
+        failureRedirect: '/login'
     })
 );
 
@@ -143,18 +240,28 @@ app.post('/signup', async (req, res, next) => {
                 return next(err);
             }
             try {
-                await prisma.user.create({
+                const user = await prisma.user.create({
                     data: {
                         username: req.body.username,
                         fullName: req.body.fullname,
                         password: hashedPassword,
-                        folders: {
-                            create: {
-                                name: 'Home',
-                            },
-                        },
                     },
-                })
+                });
+
+                const homeFolder = await prisma.folder.create({
+                    data: {
+                        name:'Home',
+                        ownerId:user.id,
+                    },
+                });
+
+                await prisma.user.update({
+                    where: {id: user.id },
+                    data: {
+                        homeFolderId: homeFolder.id,
+                    },
+                });
+
             res.redirect('/');
             } catch (error) {
                 return next(error);
