@@ -15,7 +15,7 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({extended: false}));
-
+    
 // session store setup with prisma 
 
 app.use(expressSession({
@@ -76,18 +76,45 @@ passport.deserializeUser(async (id,done) => {
     }
 });
 
+app.use((req,res,next) => {
+    res.locals.currentUser = req.user;
+    next();
+})
+
 
 
 
 // ----------Views Render--------------
 
 app.get('/', async (req, res) => {
-    console.log(req.user);
-    const prova = await prisma.session.findMany();
-    console.log(prova)
-    res.render('index');
+    if (!req.user) {
+        res.redirect('/login');
+    } else {
+    res.render('home');
+    }
 });
 
+app.get('/login', (req, res) => res.render('login'));
+
+app.post('/login', 
+    passport.authenticate('local', {
+        successRedirect: '/',
+        failureRedirect: '/'
+    })
+);
+
+app.get('/logout', (req,res) => {
+    req.logout((err) => {
+        if (err) {
+            return next(err);
+        } 
+        res.redirect('/');
+    });
+});
+
+app.get('/signup', (req,res) => {
+    res.render('signup');
+})
 
 
 
