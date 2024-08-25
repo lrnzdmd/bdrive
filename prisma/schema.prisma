@@ -44,6 +44,7 @@ model File {
   size Float
   sizeShort String
   url String
+  cloudId String
   owner User @relation(fields: [ownerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   ownerId Int 
   parent Folder @relation(fields: [parentId], references: [id], onUpdate: Cascade, onDelete: Cascade)

@@ -1,8 +1,11 @@
 const { Router } = require('express');
-const { rm } = require('node:fs');
+
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const fileRouter = Router();
+const { createClient } = require('@supabase/supabase-js');
+
+const supabase = createClient(process.env.SUPABASE_URL,process.env.SUPABASE_APIKEY);
 
 fileRouter.post('/edit/:userid/:fileid', async (req,res) => {
     const fileid = parseInt(req.params.fileid);
@@ -30,39 +33,38 @@ fileRouter.post('/edit/:userid/:fileid', async (req,res) => {
 });
 
 fileRouter.get('/delete/:userid/:fileid', async (req,res) => {
-    const fileid = parseInt(req.params.fileid);
-    const userid = parseInt(req.params.userid);
     const currid = parseInt(req.user.id);
-    if (currid != userid) {
+    const userid = parseInt(req.params.userid);
+    const fileid = parseInt(req.params.fileid);
+    if (currid !== userid) {
         return res.status(403).send(`Access denied, you don't have the permissions to access this file.`)
     } else { 
         try {
-            const file = await prisma.file.findUnique({
-                where: {
-                    id: fileid,
-                },
-            });
+            const file = await prisma.file.findUnique({where:{id:fileid}});
 
-            rm(file.url, (err) => {
-                if (err) {
-                    return res.status(500).send("Internal server error - error deleting file")
-                }
-            })
+            const { data, error } = await supabase.storage.from('bdrive').remove([file.url]);
 
-            await prisma.file.delete({
-                where:{
-                    id: fileid,
-                },
-            });
+                if (error) {
+                 console.error('Errore deleting file:', error);
+                 return res.status(500).send('internal server error')
+                } else {
+                 console.log('File Deleted:', data.name);
 
 
-            res.redirect(req.get('Referer'));
 
+
+            await prisma.file.delete({where: { id: fileid}})
+
+           
+                    res.redirect(req.get('Referer'));
+                
+           }
+
+        
         } catch (error) {
-            console.error(error);
-            return res.status(500).send("Internal server error - error deleting file");
+            console.error('Error deleting file:', error);
+            res.status(500).send('Internal server error');
         }
-
     }
 });
 

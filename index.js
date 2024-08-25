@@ -9,10 +9,12 @@ const { PrismaClient } = require('@prisma/client');
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
 const fileRouter = require('./routes/fileRouter');
 const folderRouter = require('./routes/folderRouter');
-const streamifier = require('streamifier');
-const cloudinary = require('./modules/cloudinary');
+const { createClient } = require('@supabase/supabase-js');
+
 
 const prisma = new PrismaClient();
+
+const supabase = createClient(process.env.SUPABASE_URL,process.env.SUPABASE_APIKEY);
 
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
@@ -216,43 +218,45 @@ app.post('/upload/:userid/:folderid', upload.single('newFile') ,async function (
         return res.status(403).send(`Access denied, you don't have the permissions to view this page.`)
     } else { 
         try {
-            const stream = cloudinary.uploader.upload_stream(
-                {
-                    resource_type: 'raw',
-                    folder: parentid,
-                    public_id: req.file.originalname,
-                },
-                async (error, result) => {
-                    if (error) {
-                        console.error('Error uploading the file to Cloudinary:', error);
-                        return res.status(500).send('Error uploading the file');
-                    }
-                    console.log('File uploaded successfully', req.file.originalname);
+            if (!req.file) {
+                return res.status(400).send('No file uploaded');
+            }
+
+            const filePath = `${parentid}/${req.file.originalname}`;
+
+            const { data, error } = await supabase.storage
+                .from('bdrive')
+                .upload(filePath, req.file.buffer, {
+                    contentType: req.file.mimetype 
+                });
+
+            if (error) {
+                console.error(error);
+                return res.status(500).send('Internal server error');
+            } else {
 
                 
-                    await prisma.file.create({
-                        data: {
-                            name: req.file.originalname,
-                            size: req.file.size,
-                            sizeShort: formatFileSize(req.file.size),
-                            url: result.secure_url,
-                            ownerId: userid,
-                            parentId: parentid,
-                        },
-                    });
-
-                    res.redirect(req.get('Referer'));
-                }
-            );
-
-          
-            streamifier.createReadStream(req.file.buffer).pipe(stream);
+                await prisma.file.create({
+                    data: {
+                        name:req.file.originalname,
+                        size: req.file.size,
+                        sizeShort: formatFileSize(req.file.size),
+                        cloudId: data.id,
+                        url: data.path,
+                        ownerId: currid,
+                        parentId: parentid,
+                    },
+                });
+                
+                res.redirect(req.get('Referer'));
+            }
         } catch (error) {
             console.error('Error processing the upload:', error);
             res.status(500).send('Internal server error');
         }
     }
 });
+
 
 app.get('/new/:userid/folder/:folderid', async (req,res) => {
     const currid = parseInt(req.user.id);
