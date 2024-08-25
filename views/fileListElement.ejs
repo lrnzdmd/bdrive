@@ -23,10 +23,19 @@
     <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap"><%= file.updatedAt.toString().substring(0,24) %></td>
 
     <td class="px-4 py-4 text-sm whitespace-nowrap">
-        <button class="px-1 py-1 text-gray-500 transition-colors duration-200 rounded-lg dark:text-gray-300 hover:bg-gray-100">
+        <div class="dropdown dropdown-left dropdown-end">
+        <button tabindex="0"class="px-1 py-1 text-gray-500 transition-colors duration-200 bg-white border rounded-lg sm:w-auto dark:hover:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 dark:text-white dark:border-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
             </svg>
         </button>
+        <ul tabindex="0" class="dropdown-content menu bg-gray-300 dark:bg-gray-800 rounded-box z-[2] w-36 p-2 shadow mr-2">
+            <li><a href="/delete/<%=currentUser.id%>/<%=file.id%>" class="text-red-600">Delete file</a></li>
+            <li><a>Edit file name</a></li>
+
+        </ul>
+    
+    
+        </div>
     </td>
 </tr>
