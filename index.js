@@ -189,8 +189,6 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
         }
           folder.currentPageIndex = pageindex-1;
 
-          console.log(folder.completeList[folder.currentPageIndex]);
-
        res.render('home', { folder });  
         }
         catch (error) {
