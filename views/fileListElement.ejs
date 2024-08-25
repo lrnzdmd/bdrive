@@ -37,10 +37,8 @@
                     <label for="editname" class="self-start text-xs">Edit file name.</label>
                     <button type="submit" class="px-1 text-xs tracking-wide text-white transition-colors duration-200 bg-sky-500 rounded-sm sm:w-auto gap-x-2 hover:bg-sky-600 dark:hover:bg-sky-500 dark:bg-sky-600">Confirm</button>
                     </div>
-                    <input required class="w-full rounded-sm"type="text" name="editname" value=<%= file.name %> placeholder=<%= file.name %>>
-                    <input class="hidden" readonly name="fileid" type="text" value=<%=file.id%>>
-
-                </form>
+                    <input required class="w-full rounded-sm"type="text" name="editname" value="<%= file.name %>" placeholder="<%= file.name %>">
+                    </form>
             </li>
 
         </ul>

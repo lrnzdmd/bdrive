@@ -296,6 +296,56 @@ app.post('/edit/file/:userid/:fileid', async (req,res) => {
     }
 })
 
+app.get('/delete/folder/:userid/:folderid', async (req,res) => {
+    const folderid = parseInt(req.params.folderid);
+    const userid = parseInt(req.params.userid);
+    const currid = parseInt(req.user.id);
+    if (currid != userid) {
+        return res.status(403).send(`Access denied, you don't have the permissions to access this folder.`)
+    } else { 
+        try {
+        
+            await prisma.folder.delete({
+                where:{
+                    id: folderid,
+                },
+            });
+
+
+            res.redirect(req.get('Referer'));
+
+        } catch (error) {
+            console.error(error);
+            return res.status(500).send("Internal server error - error deleting folder");
+        }
+
+    }
+})
+
+app.post('/edit/folder/:userid/:folderid', async (req,res) => {
+    const folderid = parseInt(req.params.folderid);
+    const userid = parseInt(req.params.userid);
+    const currid = parseInt(req.user.id);
+    if (currid != userid) {
+        return res.status(403).send(`Access denied, you don't have the permissions to access this folder.`)
+    } else { 
+        try {
+        await prisma.folder.update({
+            where: {
+                id: folderid,
+            },
+            data:{
+                name: req.body.editname,
+            },
+        });
+
+        res.redirect(req.get('Referer'));
+        } catch (error) {
+            res.status(500).send("Error editing folder name");
+    }
+    }
+})
+
 app.get('/delete/file/:userid/:fileid', async (req,res) => {
     const fileid = parseInt(req.params.fileid);
     const userid = parseInt(req.params.userid);
@@ -332,7 +382,6 @@ app.get('/delete/file/:userid/:fileid', async (req,res) => {
 
     }
 })
-
 
 app.get('/login', (req, res) => res.render('login'));
 

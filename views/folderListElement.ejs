@@ -25,10 +25,27 @@
     <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap"><%= folder.updatedAt.toString().substring(0,24) %></td>
 
     <td class="px-4 py-4 text-sm whitespace-nowrap">
-        <button class="px-1 py-1 text-gray-500 transition-colors duration-200 rounded-lg dark:text-gray-300 hover:bg-gray-100">
+        <div class="dropdown dropdown-left dropdown-end">
+        <button tabindex="0"class="px-1 py-1 text-gray-500 transition-colors duration-200 bg-white border rounded-lg sm:w-auto dark:hover:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 dark:text-white dark:border-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
             </svg>
         </button>
+        <ul tabindex="0" class="dropdown-content menu bg-gray-300 dark:bg-gray-800 rounded-box z-[2] w-48 p-1 shadow mr-2">
+            <li><a href="/delete/folder/<%=currentUser.id%>/<%=folder.id%>" class="text-red-600">Delete folder</a></li>
+            <li>
+                <form action="/edit/folder/<%=currentUser.id%>/<%=folder.id%>" method="post" class="flex flex-col">
+                    <div class="flex justify-between w-full">
+                    <label for="editname" class="self-start text-xs">Edit folder name.</label>
+                    <button type="submit" class="px-1 text-xs tracking-wide text-white transition-colors duration-200 bg-sky-500 rounded-sm sm:w-auto gap-x-2 hover:bg-sky-600 dark:hover:bg-sky-500 dark:bg-sky-600">Confirm</button>
+                    </div>
+                    <input required class="w-full rounded-sm"type="text" name="editname" value="<%= folder.name %>" placeholder="<%= folder.name %>">
+                </form>
+            </li>
+
+        </ul>
+    
+    
+        </div>
     </td>
 </tr>
