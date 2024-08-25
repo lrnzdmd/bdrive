@@ -11,7 +11,7 @@
                 </div>
                 
                 <div>
-                    <a href="/download/<%=currentUser.id%>/<%=file.id%>" class="cursor-pointer font-normal text-gray-800 dark:text-white "><%= file.name %></a>
+                    <a href="<%=file.url%>" class="cursor-pointer font-normal text-gray-800 dark:text-white "><%= file.name %></a>
                 </div>
             </div>
         </div>
@@ -30,9 +30,9 @@
             </svg>
         </button>
         <ul tabindex="0" class="dropdown-content menu bg-gray-300 dark:bg-gray-800 rounded-box z-[2] w-48 p-1 shadow mr-2">
-            <li><a href="/delete/file/<%=currentUser.id%>/<%=file.id%>" class="text-red-600">Delete file</a></li>
+            <li><a href="/file/delete/<%=currentUser.id%>/<%=file.id%>" class="text-red-600">Delete file</a></li>
             <li>
-                <form action="/edit/file/<%=currentUser.id%>/<%=file.id%>" method="post" class="flex flex-col">
+                <form action="/file/edit/<%=currentUser.id%>/<%=file.id%>" method="post" class="flex flex-col">
                     <div class="flex justify-between w-full">
                     <label for="editname" class="self-start text-xs">Edit file name.</label>
                     <button type="submit" class="px-1 text-xs tracking-wide text-white transition-colors duration-200 bg-sky-500 rounded-sm sm:w-auto gap-x-2 hover:bg-sky-600 dark:hover:bg-sky-500 dark:bg-sky-600">Confirm</button>

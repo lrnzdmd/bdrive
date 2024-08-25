@@ -7,11 +7,15 @@ const LocalStrategy = require('passport-local').Strategy;
 const expressSession = require('express-session');
 const { PrismaClient } = require('@prisma/client');
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
-const { rm } = require('node:fs');
-const { stringify } = require('node:querystring');
-const upload = multer({ dest: path.join(__dirname, '/uploads')});
+const fileRouter = require('./routes/fileRouter');
+const folderRouter = require('./routes/folderRouter');
+const streamifier = require('streamifier');
+const cloudinary = require('./modules/cloudinary');
 
 const prisma = new PrismaClient();
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
 
 // initialize express server and config views and public paths
 
@@ -125,6 +129,9 @@ app.use((req, res, next) => {
     checkAuthentication(req, res, next);
 });
 
+app.use('/file', fileRouter);
+app.use('/folder', folderRouter);
+
 app.get('/', async (req, res) => {
 
     res.redirect(`/drive/${req.user.id}/${req.user.fullName}/${req.user.homeFolderId}/1`);
@@ -200,33 +207,6 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
     }
 })
 
-app.get('/download/:userid/:fileid', async (req,res) => {
-    const currid = parseInt(req.user.id);
-    const userid = parseInt(req.params.userid);
-    const fileid = parseInt(req.params.fileid);
-
-    if (currid !== userid) {
-        return res.status(403).send(`Access denied, you don't have the permissions to download this file.`)
-    } else { 
-        try {
-            const path = await prisma.file.findUnique({
-                where:{
-                    id: fileid,
-                },
-            });
-            res.download(path.url,path.name, (error) => {
-                if (error) {
-                console.error('Error downloading file: ',error);
-                res.status(500).send('Error downloading file.');
-                }
-            });
-
-        } catch (error) {
-            res.status(500).send('Error fetching file: ',error);
-        }
-
-    }
-})
 
 app.post('/upload/:userid/:folderid', upload.single('newFile') ,async function (req,res,next) {
     const currid = parseInt(req.user.id);
@@ -235,19 +215,44 @@ app.post('/upload/:userid/:folderid', upload.single('newFile') ,async function (
     if (currid !== userid) {
         return res.status(403).send(`Access denied, you don't have the permissions to view this page.`)
     } else { 
-        await prisma.file.create({
-            data: {
-                name: req.file.originalname,
-                size: req.file.size,
-                sizeShort: formatFileSize(req.file.size),
-                url: req.file.path,
-                ownerId: userid,
-                parentId: parentid,
-            },
-        });
-        res.redirect(req.get('Referer'));
+        try {
+            const stream = cloudinary.uploader.upload_stream(
+                {
+                    resource_type: 'raw',
+                    folder: parentid,
+                    public_id: req.file.originalname,
+                },
+                async (error, result) => {
+                    if (error) {
+                        console.error('Error uploading the file to Cloudinary:', error);
+                        return res.status(500).send('Error uploading the file');
+                    }
+                    console.log('File uploaded successfully', req.file.originalname);
+
+                
+                    await prisma.file.create({
+                        data: {
+                            name: req.file.originalname,
+                            size: req.file.size,
+                            sizeShort: formatFileSize(req.file.size),
+                            url: result.secure_url,
+                            ownerId: userid,
+                            parentId: parentid,
+                        },
+                    });
+
+                    res.redirect(req.get('Referer'));
+                }
+            );
+
+          
+            streamifier.createReadStream(req.file.buffer).pipe(stream);
+        } catch (error) {
+            console.error('Error processing the upload:', error);
+            res.status(500).send('Internal server error');
+        }
     }
-})
+});
 
 app.get('/new/:userid/folder/:folderid', async (req,res) => {
     const currid = parseInt(req.user.id);
@@ -272,116 +277,12 @@ app.get('/new/:userid/folder/:folderid', async (req,res) => {
     }
 })
 
-app.post('/edit/file/:userid/:fileid', async (req,res) => {
-    const fileid = parseInt(req.params.fileid);
-    const userid = parseInt(req.params.userid);
-    const currid = parseInt(req.user.id);
-    if (currid != userid) {
-        return res.status(403).send(`Access denied, you don't have the permissions to access this file.`)
-    } else { 
-        try {
-        await prisma.file.update({
-            where: {
-                id: fileid,
-            },
-            data:{
-                name: req.body.editname,
-            },
-        });
-
-        res.redirect(req.get('Referer'));
-        } catch (error) {
-            res.status(500).send("Error editing file name");
-    }
-    }
-})
-
-app.get('/delete/folder/:userid/:folderid', async (req,res) => {
-    const folderid = parseInt(req.params.folderid);
-    const userid = parseInt(req.params.userid);
-    const currid = parseInt(req.user.id);
-    if (currid != userid) {
-        return res.status(403).send(`Access denied, you don't have the permissions to access this folder.`)
-    } else { 
-        try {
-        
-            await prisma.folder.delete({
-                where:{
-                    id: folderid,
-                },
-            });
 
 
-            res.redirect(req.get('Referer'));
-
-        } catch (error) {
-            console.error(error);
-            return res.status(500).send("Internal server error - error deleting folder");
-        }
-
-    }
-})
-
-app.post('/edit/folder/:userid/:folderid', async (req,res) => {
-    const folderid = parseInt(req.params.folderid);
-    const userid = parseInt(req.params.userid);
-    const currid = parseInt(req.user.id);
-    if (currid != userid) {
-        return res.status(403).send(`Access denied, you don't have the permissions to access this folder.`)
-    } else { 
-        try {
-        await prisma.folder.update({
-            where: {
-                id: folderid,
-            },
-            data:{
-                name: req.body.editname,
-            },
-        });
-
-        res.redirect(req.get('Referer'));
-        } catch (error) {
-            res.status(500).send("Error editing folder name");
-    }
-    }
-})
-
-app.get('/delete/file/:userid/:fileid', async (req,res) => {
-    const fileid = parseInt(req.params.fileid);
-    const userid = parseInt(req.params.userid);
-    const currid = parseInt(req.user.id);
-    if (currid != userid) {
-        return res.status(403).send(`Access denied, you don't have the permissions to access this file.`)
-    } else { 
-        try {
-            const file = await prisma.file.findUnique({
-                where: {
-                    id: fileid,
-                },
-            });
-
-            rm(file.url, (err) => {
-                if (err) {
-                    return res.status(500).send("Internal server error - error deleting file")
-                }
-            })
-
-            await prisma.file.delete({
-                where:{
-                    id: fileid,
-                },
-            });
 
 
-            res.redirect(req.get('Referer'));
 
-        } catch (error) {
-            console.error(error);
-            return res.status(500).send("Internal server error - error deleting file");
-        }
 
-    }
-})
 
 app.get('/login', (req, res) => res.render('login'));
 
