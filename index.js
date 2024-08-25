@@ -8,6 +8,7 @@ const expressSession = require('express-session');
 const { PrismaClient } = require('@prisma/client');
 const { PrismaSessionStore } = require('@quixo3/prisma-session-store');
 const { rm } = require('node:fs');
+const { stringify } = require('node:querystring');
 const upload = multer({ dest: path.join(__dirname, '/uploads')});
 
 const prisma = new PrismaClient();
@@ -271,11 +272,34 @@ app.get('/new/:userid/folder/:folderid', async (req,res) => {
     }
 })
 
-app.get('/delete/:userid/:fileid', async (req,res) => {
+app.post('/edit/file/:userid/:fileid', async (req,res) => {
     const fileid = parseInt(req.params.fileid);
     const userid = parseInt(req.params.userid);
     const currid = parseInt(req.user.id);
+    if (currid != userid) {
+        return res.status(403).send(`Access denied, you don't have the permissions to access this file.`)
+    } else { 
+        try {
+        await prisma.file.update({
+            where: {
+                id: fileid,
+            },
+            data:{
+                name: req.body.editname,
+            },
+        });
 
+        res.redirect(req.get('Referer'));
+        } catch (error) {
+            res.status(500).send("Error editing file name");
+    }
+    }
+})
+
+app.get('/delete/file/:userid/:fileid', async (req,res) => {
+    const fileid = parseInt(req.params.fileid);
+    const userid = parseInt(req.params.userid);
+    const currid = parseInt(req.user.id);
     if (currid != userid) {
         return res.status(403).send(`Access denied, you don't have the permissions to access this file.`)
     } else { 
