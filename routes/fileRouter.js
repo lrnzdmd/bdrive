@@ -32,6 +32,37 @@ fileRouter.post('/edit/:userid/:fileid', async (req,res) => {
     }
 });
 
+fileRouter.get('/download/:userid/:parentid/:fileid', async (req,res) => {
+    const currid = parseInt(req.user.id);
+    const userid = parseInt(req.params.userid);
+    const fileid = parseInt(req.params.fileid);
+    const parentid = parseInt(req.params.parentid);
+    if (currid !== userid) {
+        return res.status(403).send(`Access denied, you don't have the permissions to access this file.`)
+    } else {  
+        try {
+            const filename = await prisma.file.findUnique({where:{id:fileid}});
+
+        const filePath = `${parentid}/${filename.name}`;
+
+        const { data, error } = await supabase
+            .storage
+            .from('bdrive')
+            .createSignedUrl(filePath, 60);
+        
+            if (error) {
+                console.error('Error generating signed url:', error);
+                return res.status(500).send('Internal server error');
+            }
+            res.redirect(data.signedUrl);
+        } catch (error) {
+            console.error('Error processing the request:', error);
+        res.status(500).send('Internal server error');
+        }
+    }
+
+})
+
 fileRouter.get('/delete/:userid/:fileid', async (req,res) => {
     const currid = parseInt(req.user.id);
     const userid = parseInt(req.params.userid);
