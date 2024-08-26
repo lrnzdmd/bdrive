@@ -181,24 +181,39 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
         return res.status(403)._construct(`Access denied, you don't have the permissions to view this page.`)
     } else {
         try {
-        const folder = await prisma.folder.findUnique({
-            where: { id: folderid },
-            include: {
-                files: true,
-                subfolders: {
-                    include: {
-                        subfolders: true,
-                        parent: true,
+            const folder = await prisma.folder.findUnique({
+                where: { id: folderid },
+                include: {
+                  files: {
+                    orderBy: {
+                      updatedAt: 'desc', 
                     },
-                },
-                parent: {
-                    include: {
-                        subfolders: true,
-                        parent: true,
+                  },
+                  subfolders: {
+                    orderBy: {
+                      updatedAt: 'desc', 
                     },
+                    include: {
+                      subfolders: {
+                        orderBy: {
+                          updatedAt: 'desc', 
+                        },
+                        include: {
+                          subfolders: true,
+                          parent: true,
+                        },
+                      },
+                      parent: true,
+                    },
+                  },
+                  parent: {
+                    include: {
+                      subfolders: true, 
+                      parent: true,
+                    },
+                  },
                 },
-            },
-        });
+              });
 
         if (!folder) {
             return res.status(404).send("Not Found");
@@ -231,7 +246,16 @@ app.all('/search/:searchvalue/:pagenumber', async (req,res) => {
     const folder = {subfolders: [], files: []};
     try {
     folder.breadcrumbs = ['Search', req.params.searchvalue];    
-    folder.files = await prisma.file.findMany({where:{name: {contains: req.body.search}}})
+    folder.files = await prisma.file.findMany({
+        where: {
+          name: {
+            contains: req.body.search,
+          },
+        },
+        orderBy: {
+          updatedAt: 'desc', 
+        },
+      });
   
     splitIntoPages(folder, pageindex);
 
