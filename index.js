@@ -284,7 +284,7 @@ app.post('/upload/:userid/:folderid', upload.single('newFile') ,async function (
                     },
                 });
                 
-                res.redirect(req.get('Referer'));
+                res.redirect('/');
             }
         } catch (error) {
             console.error('Error processing the upload:', error);
@@ -309,7 +309,7 @@ app.get('/new/:userid/folder/:folderid', async (req,res) => {
                 parentId: parentid,
             }
             });
-            res.redirect(req.get('Referer'));
+            res.redirect('/');
         } catch (error) {
             res.status(500).send('Internal server error');
         }
