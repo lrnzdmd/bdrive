@@ -59,6 +59,22 @@ async function generateBreadcrumbs(folder) {
         return path;
 }
 
+
+async function splitIntoPages(folder, pageindex) {
+    const completeList = [...folder.subfolders, ...folder.files];
+
+        if (completeList.length > 10) {
+          const pages = [];
+          for (let i = 0; i < completeList.length; i += 10) {
+            pages.push(completeList.slice(i, i + 10));
+          }
+          folder.completeList = pages;
+        } else {
+          folder.completeList = [completeList];
+        }
+          folder.currentPageIndex = pageindex-1;
+}
+
 // middleware to only allow unauthenticated users to login and signup route
 
 function checkAuthentication(req, res, next) {
@@ -198,19 +214,8 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
 
         // divide the list of all files and folders in pages of 10 elements
 
-
-        const completeList = [...folder.subfolders, ...folder.files];
-
-        if (completeList.length > 10) {
-          const pages = [];
-          for (let i = 0; i < completeList.length; i += 10) {
-            pages.push(completeList.slice(i, i + 10));
-          }
-          folder.completeList = pages;
-        } else {
-          folder.completeList = [completeList];
-        }
-          folder.currentPageIndex = pageindex-1;
+  
+       splitIntoPages(folder, pageindex);
 
        res.render('home', { folder });  
         }
@@ -221,18 +226,17 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
     }
 })
 
-app.post('/search', async (req,res) => {
-    const folder = {};
+app.all('/search/:searchvalue/:pagenumber', async (req,res) => {
+    const pageindex = parseInt(req.params.pagenumber, 10);
+    const folder = {subfolders: [], files: []};
     try {
-        folder.completeList = [];
-    folder.completeList.push(await prisma.file.findMany({where:{name: {contains: req.body.search}}}))
-    folder.breadcrumbs = ['Search'];
-    folder.currentPageIndex = 0;
-    if (completeList[0].length > 0) {
+    folder.breadcrumbs = ['Search', req.params.searchvalue];    
+    folder.files = await prisma.file.findMany({where:{name: {contains: req.body.search}}})
+  
+    splitIntoPages(folder, pageindex);
+
     res.render('home', { folder });
-    } else {
-        res.status(500).send('error');
-    }
+  
     
     } catch (error) {
         console.error(error);
