@@ -171,18 +171,23 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
             return res.status(404).send("Not Found");
         }
        
-
+     
         // create an array of parents of the folder to get a path for the breadcrumbs
 
-        let parentf = folder;
+        let currid = folder.id;
         const path = [];
-        path.push(folder.name);
-        while (parentf.parentId !== null) {
-          path.push(parentf.parent.name);
-          parentf = parentf.parent;
-        }
+       while (currid) {
+       const foldr = await prisma.folder.findUnique({where:{id:currid}});
+       if (!foldr) {
+         return res.status(500).send('error fetching folders parents');
+       }
+       path.push(foldr.name);
+       currid = foldr.parentId;
+       }
         path.reverse();
         folder.breadcrumbs = path;
+
+        
 
         // divide the list of all files and folders in pages of 10 elements
 

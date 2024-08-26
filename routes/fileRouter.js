@@ -4,8 +4,11 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const fileRouter = Router();
 const { createClient } = require('@supabase/supabase-js');
+const NoWorkResult = require('postcss/lib/no-work-result');
 
 const supabase = createClient(process.env.SUPABASE_URL,process.env.SUPABASE_APIKEY);
+
+
 
 fileRouter.post('/edit/:userid/:fileid', async (req,res) => {
     const fileid = parseInt(req.params.fileid);
@@ -21,6 +24,7 @@ fileRouter.post('/edit/:userid/:fileid', async (req,res) => {
             },
             data:{
                 name: req.body.editname,
+                updatedAt: new Date(),
             },
         });
 
