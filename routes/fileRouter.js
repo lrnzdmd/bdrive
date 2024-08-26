@@ -4,7 +4,6 @@ const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const fileRouter = Router();
 const { createClient } = require('@supabase/supabase-js');
-const NoWorkResult = require('postcss/lib/no-work-result');
 
 const supabase = createClient(process.env.SUPABASE_URL,process.env.SUPABASE_APIKEY);
 
@@ -47,12 +46,10 @@ fileRouter.get('/download/:userid/:parentid/:fileid', async (req,res) => {
         try {
             const filename = await prisma.file.findUnique({where:{id:fileid}});
 
-        const filePath = `${parentid}/${filename.name}`;
-
         const { data, error } = await supabase
             .storage
             .from('bdrive')
-            .createSignedUrl(filePath, 60);
+            .createSignedUrl(filename.url, 60);
         
             if (error) {
                 console.error('Error generating signed url:', error);
