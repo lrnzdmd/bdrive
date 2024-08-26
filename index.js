@@ -268,7 +268,7 @@ app.post('/upload/:userid/:folderid', upload.single('newFile') ,async function (
 
             if (error) {
                 console.error(error);
-                return res.status(500).send('Internal server error');
+                return res.status(parseInt(error.statusCode)).send(error.error + ' ' + error.message);
             } else {
 
                 
