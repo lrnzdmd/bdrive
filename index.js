@@ -61,13 +61,13 @@ async function generateBreadcrumbs(folder) {
   return path;
 }
 
-async function splitIntoPages(folder, pageindex) {
+async function splitIntoPages(folder, pageindex, amountforpage = 10) {
   const completeList = [...folder.subfolders, ...folder.files];
 
-  if (completeList.length > 10) {
+  if (completeList.length > amountforpage) {
     const pages = [];
-    for (let i = 0; i < completeList.length; i += 10) {
-      pages.push(completeList.slice(i, i + 10));
+    for (let i = 0; i < completeList.length; i += amountforpage) {
+      pages.push(completeList.slice(i, i + amountforpage));
     }
     folder.completeList = pages;
   } else {
