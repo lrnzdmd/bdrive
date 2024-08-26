@@ -42,6 +42,23 @@ function formatFileSize(bytes) {
     return `${size.toFixed(2)} ${units[index]}`;
 }
 
+// create an array of parents of the folder to get a path for the breadcrumbs
+
+async function generateBreadcrumbs(folder) {
+    let currid = folder.id;
+        const path = [];
+       while (currid) {
+       const foldr = await prisma.folder.findUnique({where:{id:currid}});
+       if (!foldr) {
+         return res.status(500).send('error fetching folders parents');
+       }
+       path.push(foldr.name);
+       currid = foldr.parentId;
+       }
+        path.reverse();
+        return path;
+}
+
 // middleware to only allow unauthenticated users to login and signup route
 
 function checkAuthentication(req, res, next) {
@@ -172,20 +189,10 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
         }
        
      
-        // create an array of parents of the folder to get a path for the breadcrumbs
+        
 
-        let currid = folder.id;
-        const path = [];
-       while (currid) {
-       const foldr = await prisma.folder.findUnique({where:{id:currid}});
-       if (!foldr) {
-         return res.status(500).send('error fetching folders parents');
-       }
-       path.push(foldr.name);
-       currid = foldr.parentId;
-       }
-        path.reverse();
-        folder.breadcrumbs = path;
+        
+        folder.breadcrumbs = await generateBreadcrumbs(folder);
 
         
 
@@ -214,6 +221,26 @@ app.get('/drive/:userid/:username/:folderid/:pagenumber', async (req, res) => {
     }
 })
 
+app.post('/search', async (req,res) => {
+    const folder = {};
+    try {
+        folder.completeList = [];
+    folder.completeList.push(await prisma.file.findMany({where:{name: {contains: req.body.search}}}))
+    folder.breadcrumbs = ['Search'];
+    folder.currentPageIndex = 0;
+    if (completeList[0].length > 0) {
+    res.render('home', { folder });
+    } else {
+        res.status(500).send('error');
+    }
+    
+    } catch (error) {
+        console.error(error);
+        res.status(500).send('error');
+    }
+    
+    
+});
 
 app.post('/upload/:userid/:folderid', upload.single('newFile') ,async function (req,res,next) {
     const currid = parseInt(req.user.id);
