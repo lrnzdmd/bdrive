@@ -64,7 +64,7 @@ folderRouter.post('/edit/:userid/:folderid', async (req,res) => {
             },
         });
 
-        res.redirect(req.get('Referer'));
+        res.redirect('/');
         } catch (error) {
             res.status(500).send("Error editing folder name");
     }

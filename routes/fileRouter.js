@@ -27,7 +27,7 @@ fileRouter.post('/edit/:userid/:fileid', async (req,res) => {
             },
         });
 
-        res.redirect(req.get('Referer'));
+        res.redirect('/');
         } catch (error) {
             console.error(error)
             res.status(500).send("Error editing file name");
@@ -88,7 +88,7 @@ fileRouter.get('/delete/:userid/:fileid', async (req,res) => {
             await prisma.file.delete({where: { id: fileid}})
 
            
-                    res.redirect(req.get('Referer'));
+                    res.redirect('/');
                 
            }
 
