@@ -1,5 +1,5 @@
 <tr>
-    <td class="px-4 py-4 text-sm font-medium text-gray-700 whitespace-nowrap">
+    <td class="px-4 py-3 text-sm font-medium text-gray-700 whitespace-nowrap">
         <div class="inline-flex items-center gap-x-3">
             <input type="checkbox" class="text-sky-500 border-gray-300 rounded dark:bg-gray-900 dark:ring-offset-gray-900 dark:border-gray-700">
 
@@ -16,20 +16,20 @@
             </div>
         </div>
     </td>
-    <td class="px-12 py-4 text-sm font-normal text-gray-500 whitespace-nowrap">
+    <td class="px-12 py-3 text-sm font-normal text-gray-500 whitespace-nowrap">
         <%= file.sizeShort %>
     </td>
-    <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap"><%= file.createdAt.toString().substring(0,24) %></td>
-    <td class="px-4 py-4 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap"><%= file.updatedAt.toString().substring(0,24) %></td>
+    <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap"><%= file.createdAt.toString().substring(0,24) %></td>
+    <td class="px-4 py-3 text-sm text-gray-500 dark:text-gray-300 whitespace-nowrap"><%= file.updatedAt.toString().substring(0,24) %></td>
 
-    <td class="px-4 py-4 text-sm whitespace-nowrap">
-        <div class="dropdown dropdown-left dropdown-end">
+    <td class="px-4 py-3 text-sm whitespace-nowrap">
+        <div class="dropdown dropdown-right dropdown-end">
         <button tabindex="0"class="px-1 py-1 text-gray-500 transition-colors duration-200 bg-white border rounded-lg sm:w-auto dark:hover:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 dark:text-white dark:border-gray-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
             </svg>
         </button>
-        <ul tabindex="0" class="dropdown-content menu border border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 rounded-box z-[2] w-48 p-1 shadow mr-2">
+        <ul tabindex="0" class="dropdown-content menu border border-gray-200 bg-gray-50 dark:bg-gray-800 dark:border-gray-700 rounded-box z-[2] w-48 p-1 shadow ml-2">
             <li><a href="/file/delete/<%=currentUser.id%>/<%=file.id%>" class="text-red-600">Delete file</a></li>
             <li>
                 <form action="/file/edit/<%=currentUser.id%>/<%=file.id%>" method="post" class="flex flex-col">
