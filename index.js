@@ -13,6 +13,10 @@ const { createClient } = require("@supabase/supabase-js");
 
 const prisma = new PrismaClient();
 
+// Supabase client setup for file storage or other services.
+// Memory storage for Multer to handle file uploads in memory before processing.
+// (This is not a scalable solution, will most certainly have to change it later)
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_APIKEY
@@ -29,7 +33,7 @@ app.set("view engine", "ejs");
 app.use(express.static("public"));
 app.use(express.urlencoded({ extended: false }));
 
-// Utility function, takes a file size in bytes and outputs the filesize in kb mb gb etc
+// Utility function to format file sizes for displaying in the UI (e.g., when listing files).
 
 function formatFileSize(bytes) {
   const units = ["Bytes", "KB", "MB", "GB", "TB"];
@@ -44,7 +48,8 @@ function formatFileSize(bytes) {
   return `${size.toFixed(2)} ${units[index]}`;
 }
 
-// create an array of parents of the folder to get a path for the breadcrumbs
+// Generates breadcrumb navigation by iterating through folder parents.
+// It fetches each folder's parent recursively to build the full path.
 
 async function generateBreadcrumbs(folder) {
   let currid = folder.id;
@@ -60,6 +65,9 @@ async function generateBreadcrumbs(folder) {
   path.reverse();
   return path;
 }
+
+// Splits the folder's contents (subfolders and files) into pages for pagination.
+// `amountforpage` defines how many items are displayed per page.
 
 async function splitIntoPages(folder, pageindex, amountforpage = 10) {
   const completeList = [...folder.subfolders, ...folder.files];
